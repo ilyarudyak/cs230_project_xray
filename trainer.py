@@ -20,14 +20,14 @@ class Trainer:
             self.params = utils.Params(experiment_dir / 'params.json')
 
         # model
-        self.model = BaseModel()
+        self.model = BaseModel(params=params)
 
         # directories
         self.experiment_dir = experiment_dir
         self.weight_file = self.experiment_dir / 'weights'
 
         # dataset
-        self.dataset = ChestXrayDataset()
+        self.dataset = ChestXrayDataset(params=params)
 
         # optimizer
         self.optimizer = tf.keras.optimizers.Adam(lr=self.params.learning_rate)

@@ -42,7 +42,10 @@ def show_batch(image_batch, label_batch, dataset):
     plt.figure(figsize=(10,10))
     for n in range(batch_size):
         _ = plt.subplot(batch_size // 2, batch_size // 2, n+1)
-        plt.imshow(image_batch_numpy[n].reshape(image_size, image_size), cmap='binary')
+
+        # only for grayscale images
+        # plt.imshow(image_batch_numpy[n].reshape(image_size, image_size), cmap='binary')
+        plt.imshow(image_batch_numpy[n])
         plt.title(class_names[label_batch_numpy[n]][0])
         plt.axis('off')
 

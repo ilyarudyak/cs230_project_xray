@@ -5,6 +5,11 @@ import pathlib
 
 
 class BaseModel:
+    """
+    important notice: we can't use resnet50 with images that contain only one channel,
+    so we read them in RGB mode - see here:
+    https://stackoverflow.com/questions/51995977/how-can-i-use-a-pre-trained-neural-network-with-grayscale-images
+    """
 
     def __init__(self,
                  params,

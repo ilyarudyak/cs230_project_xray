@@ -9,17 +9,19 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 class ChestXrayDataset:
 
     def __init__(self,
+                 params,
                  data_dir=pathlib.Path.home()/'data/chest_xray/small',
-                 cache=True,
-                 batch_size=8,
-                 shuffle_buffer_size=32):
+                 class_names=('NORMAL', 'PNEUMONIA'),
+                 cache=True):
 
-        self.class_names = np.array(['NORMAL', 'PNEUMONIA'])
-        self.img_size = 224
+        self.params = params
+
+        self.class_names = np.array(class_names)
+        self.img_size = self.params.input_shape[0]
 
         self.cache = cache
-        self.batch_size = batch_size
-        self.shuffle_buffer_size = shuffle_buffer_size
+        self.batch_size = self.params.batch_size
+        self.shuffle_buffer_size = self.params.shuffle_buffer_size
 
         self.data_dir = data_dir
         self.train_dir = self.data_dir / 'train'
@@ -43,7 +45,8 @@ class ChestXrayDataset:
     def decode_img(self, img):
 
         # convert the compressed string to a 3D uint8 tensor
-        img = tf.image.decode_jpeg(img, channels=1)
+        channels = self.params.input_shape[2]
+        img = tf.image.decode_jpeg(img, channels=channels)
 
         # Use `convert_image_dtype` to convert to floats in the [0,1] range.
         img = tf.image.convert_image_dtype(img, tf.float32)
