@@ -85,3 +85,9 @@ class Trainer:
 
     def plot_history(self):
         utils.plot_history(self)
+
+
+if __name__ == '__main__':
+    trainer = Trainer()
+    trainer.train()
+
