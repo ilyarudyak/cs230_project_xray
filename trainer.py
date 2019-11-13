@@ -67,10 +67,10 @@ class Trainer:
         train_ds, val_ds = self.dataset.build_datasets()
 
         history = self.model.fit(x=train_ds,
-                                 steps_per_epoch=self.params.steps_per_epoch,
+                                 steps_per_epoch=self.params.num_train_files//self.params.batch_size,
                                  epochs=self.params.epochs,
                                  validation_data=val_ds,
-                                 validation_steps=self.params.validation_steps,
+                                 validation_steps=self.params.num_val_files//self.params.batch_size,
                                  callbacks=self.callbacks)
         utils.save_history_dict(history, self)
         return history

@@ -6,6 +6,8 @@
   "input_shape": [224, 224, 3],
   "loss": "categorical_crossentropy",
 
+  "num_train_files": 5216,
+  "num_val_files": 624,
   "steps_per_epoch": 8,
   "validation_steps": 3
 }
