@@ -25,6 +25,7 @@ class Trainer:
         # directories
         self.experiment_dir = experiment_dir
         self.weight_file = self.experiment_dir / 'weights_val_loss.hdf5'
+        self.history_file = self.experiment_dir / 'history.pickle'
 
         # dataset
         self.dataset = ChestXrayDataset(params=self.params)
@@ -71,6 +72,7 @@ class Trainer:
                                  validation_data=val_ds,
                                  validation_steps=self.params.validation_steps,
                                  callbacks=self.callbacks)
+        utils.save_history_dict(history, self)
         return history
 
     def predict(self, weight_file):
@@ -81,3 +83,6 @@ class Trainer:
         #                                 batch_size=self.params.batch_size_test)
         # test_masks = test_masks.round()
         # tiff.imsave(self.pred_file, test_masks)
+
+    def plot_history(self):
+        utils.plot_history(self)

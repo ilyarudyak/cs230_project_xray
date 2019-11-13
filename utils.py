@@ -50,7 +50,7 @@ def show_batch(image_batch, label_batch, dataset):
         plt.axis('off')
 
 
-def save_history(history, trainer, param_name=None):
+def save_history_dict(history, trainer, param_name=None):
 
     if param_name:
         param = trainer.params.dict[param_name]
@@ -61,7 +61,38 @@ def save_history(history, trainer, param_name=None):
         pickle.dump(history.history, f)
 
 
-def load_history(filename):
+def load_history_dict(trainer):
+    filename = trainer.history_file
     with open(filename, "rb") as f:
         history = pickle.load(f)
     return history
+
+
+def plot_history(trainer):
+
+    history_dict = load_history_dict(trainer=trainer)
+
+    acc = history_dict['accuracy']
+    val_acc = history_dict['val_accuracy']
+
+    loss = history_dict['loss']
+    val_loss = history_dict['val_loss']
+
+    epochs = range(len(acc))
+
+    plt.figure(figsize=(15, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(acc, label='Training Accuracy')
+    plt.plot(val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.ylim([min(plt.ylim()), 1])
+    plt.title('Training and Validation Accuracy')
+    plt.xticks(epochs)
+
+    plt.subplot(1, 2, 2)
+    plt.plot(loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.ylim([0, 1.0])
+    plt.title('Training and Validation Loss')
+    plt.xticks(epochs)
