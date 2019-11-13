@@ -10,18 +10,19 @@ class ChestXrayDataset:
 
     def __init__(self,
                  params,
-                 data_dir=pathlib.Path.home()/'data/chest_xray/small',
+                 data_dir=pathlib.Path.home()/'data/chest_xray/small_10',
                  class_names=('NORMAL', 'PNEUMONIA'),
+                 shuffle_buffer_size=32,
                  cache=True):
 
         self.params = params
 
         self.class_names = np.array(class_names)
+        self.shuffle_buffer_size = shuffle_buffer_size
         self.img_size = self.params.input_shape[0]
 
         self.cache = cache
         self.batch_size = self.params.batch_size
-        self.shuffle_buffer_size = self.params.shuffle_buffer_size
 
         self.data_dir = data_dir
         self.train_dir = self.data_dir / 'train'

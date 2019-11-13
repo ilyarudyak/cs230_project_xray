@@ -1,19 +1,11 @@
 {
   "learning_rate": 0.001,
-  "input_shape": [224, 224, 3],
-  "loss": "binary_crossentropy",
-  "num_classes": 2,
-  "output_layer_activation": "sigmoid",
-
-  "steps_per_epoch": 100,
-  "epochs": 25,
+  "epochs": 3,
   "batch_size": 8,
-  "shuffle_buffer_size": 32,
 
-  "start_epoch": 0,
-  "last_step": 10,
-  "padding": "same",
-  "batch_size_val": 1,
-  "validation_steps": 3,
-  "batch_size_test": 1
+  "input_shape": [224, 224, 3],
+  "loss": "categorical_crossentropy",
+
+  "steps_per_epoch": 8,
+  "validation_steps": 3
 }
