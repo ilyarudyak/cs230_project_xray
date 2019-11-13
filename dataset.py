@@ -10,7 +10,7 @@ class ChestXrayDataset:
 
     def __init__(self,
                  params,
-                 data_dir=pathlib.Path.home()/'data/chest_xray/small_10',
+                 data_dir=pathlib.Path.home()/'data/chest_xray/',
                  class_names=('NORMAL', 'PNEUMONIA'),
                  shuffle_buffer_size=32,
                  cache=True):
