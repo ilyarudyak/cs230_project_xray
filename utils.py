@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pickle
 import json
+import sklearn.metrics
 
 
 class Params:

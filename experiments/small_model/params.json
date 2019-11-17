@@ -6,9 +6,9 @@
   "input_shape": [224, 224, 3],
   "loss": "categorical_crossentropy",
 
-  "num_train_files": 4706,
-  "num_val_files": 526,
-  "num_test_files": 624,
+  "num_train_files": 128,
+  "num_val_files": 20,
+  "num_test_files": 16,
 
-  "small_model": 0
+  "small_model": 1
 }

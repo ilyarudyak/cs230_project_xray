@@ -5,6 +5,10 @@ import utils
 from model.base_model import BaseNet
 from dataset import ChestXrayDataset
 
+import logging
+logger = tf.get_logger()
+logger.setLevel(logging.ERROR)
+
 
 class Trainer:
 
@@ -28,13 +32,20 @@ class Trainer:
         self.history_file = self.experiment_dir / 'history.pickle'
 
         # dataset
-        self.dataset = ChestXrayDataset(params=self.params)
+        if self.params.small_model:
+            self.dataset = ChestXrayDataset(params=self.params,
+                                            data_dir=pathlib.Path.home()/'data/chest_xray/small_10')
+        else:
+            self.dataset = ChestXrayDataset(params=self.params)
+        self.train_ds, self.val_ds = self.dataset.build_datasets()
 
         # optimizer
         self.optimizer = tf.keras.optimizers.Adam(lr=self.params.learning_rate)
 
         # metrics and loss
-        self.metrics = ['accuracy']
+        self.metrics = [tf.keras.metrics.Accuracy(),
+                        tf.keras.metrics.Precision(),
+                        tf.keras.metrics.Recall()]
         self.loss = self.params.loss
         self.model.compile(optimizer=self.optimizer,
                            loss=self.loss,
@@ -63,21 +74,18 @@ class Trainer:
         if load_weights:
             self.model.load_weights(self.weight_file)
 
-        train_ds, val_ds = self.dataset.build_datasets()
-
-        history = self.model.fit(x=train_ds,
+        history = self.model.fit(x=self.train_ds,
                                  steps_per_epoch=self.params.num_train_files//self.params.batch_size,
                                  epochs=self.params.epochs,
-                                 validation_data=val_ds,
+                                 validation_data=self.val_ds,
                                  validation_steps=self.params.num_val_files//self.params.batch_size,
                                  callbacks=self.callbacks)
         utils.save_history_dict(history, self)
         return history
 
-    def predict(self, weight_file):
-        pass
-        # self.model.load_weights(weight_file)
-        # self.dataset.load_data_test()
+    def predict(self, dataset):
+        self.model.load_weights(self.weight_file)
+
         # test_masks = self.model.predict(self.dataset.image_data_test / 255.0,
         #                                 batch_size=self.params.batch_size_test)
         # test_masks = test_masks.round()
