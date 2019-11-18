@@ -250,3 +250,5 @@ pip-selfcheck.json
 events*
 *.hdf5
 *.swp
+checkpoint
+weights*

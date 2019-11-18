@@ -1,6 +1,6 @@
 {
   "learning_rate": 0.001,
-  "epochs": 1,
+  "epochs": 2,
   "batch_size": 8,
 
   "input_shape": [224, 224, 3],

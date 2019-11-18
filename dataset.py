@@ -35,6 +35,11 @@ class ChestXrayDataset:
         self.val_labeled_ds = None
         self.val_ds = None
 
+        self.test_dir = self.data_dir / 'test'
+        self.test_list_ds = None
+        self.test_labeled_ds = None
+        self.test_ds = None
+
     def get_label(self, file_path):
 
         # convert the path to a list of path components
@@ -73,6 +78,10 @@ class ChestXrayDataset:
         self.val_list_ds = tf.data.Dataset.list_files(str(self.val_dir / '*/*'))
         self.val_labeled_ds = self.val_list_ds.map(self.process_path)
 
+    def build_test_labeled_ds(self):
+        self.test_list_ds = tf.data.Dataset.list_files(str(self.test_dir / '*/*'))
+        self.test_labeled_ds = self.test_list_ds.map(self.process_path)
+
     def prepare_for_training(self, ds):
 
         # This is a small dataset, only load it once, and keep it in memory.
@@ -101,8 +110,10 @@ class ChestXrayDataset:
 
         self.build_train_labeled_ds()
         self.build_val_labeled_ds()
+        self.build_test_labeled_ds()
 
         self.train_ds = self.prepare_for_training(self.train_labeled_ds)
         self.val_ds = self.prepare_for_training(self.val_labeled_ds)
+        self.test_ds = self.prepare_for_training(self.test_labeled_ds)
 
-        return self.train_ds, self.val_ds
+        return self.train_ds, self.val_ds, self.test_ds

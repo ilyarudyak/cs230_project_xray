@@ -2,9 +2,12 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 import pathlib
 import utils
+import numpy as np
 
 from model.base_model import BaseNet
 from dataset import ChestXrayDataset
+
+from sklearn.metrics import confusion_matrix
 
 import logging
 logger = tf.get_logger()
@@ -38,13 +41,13 @@ class Trainer:
                                             data_dir=pathlib.Path.home()/'data/chest_xray/small_10')
         else:
             self.dataset = ChestXrayDataset(params=self.params)
-        self.train_ds, self.val_ds = self.dataset.build_datasets()
+        self.train_ds, self.val_ds, self.test_ds = self.dataset.build_datasets()
 
         # optimizer
         self.optimizer = tf.keras.optimizers.Adam(lr=self.params.learning_rate)
 
         # metrics and loss
-        self.metrics = [tf.keras.metrics.Accuracy(),
+        self.metrics = [tf.keras.metrics.CategoricalAccuracy(),
                         tf.keras.metrics.Precision(),
                         tf.keras.metrics.Recall(),
                         tfa.metrics.f_scores.F1Score(num_classes=2,
@@ -87,19 +90,40 @@ class Trainer:
         utils.save_history_dict(history, self)
         return history
 
-    def predict(self, dataset):
-        self.model.load_weights(self.weight_file)
+    def predict(self):
+        self.model.load_weights(str(self.weight_file))
+        y_pred_categorical = self.model.predict(self.test_ds,
+                                                steps=self.params.num_test_files//self.params.batch_size)
+        y_pred = np.argmax(y_pred_categorical, axis=1)
+        return y_pred
 
-        # test_masks = self.model.predict(self.dataset.image_data_test / 255.0,
-        #                                 batch_size=self.params.batch_size_test)
-        # test_masks = test_masks.round()
-        # tiff.imsave(self.pred_file, test_masks)
+    def get_true_test_labels(self):
+
+        def from_categorical(y_one_hot):
+            if y_one_hot[0]:
+                return 0
+            else:
+                return 1
+
+        y_true = np.zeros(self.params.num_test_files, dtype=np.int)
+        idx = 0
+        for _, label in self.test_ds.unbatch().take(self.params.num_test_files):
+            y_true[idx] = from_categorical(label.numpy())
+            idx += 1
+        return y_true
+
+    def get_confusion_matrix(self):
+        y_true = self.get_true_test_labels()
+        y_pred = self.predict()
+        cm = confusion_matrix(y_true, y_pred)
+        return cm
 
     def plot_history(self):
         utils.plot_history(self)
 
 
 if __name__ == '__main__':
-    trainer = Trainer()
+    trainer = Trainer(experiment_dir=pathlib.Path('experiments/small_model'))
     trainer.train()
+    preds = trainer.predict()
 
