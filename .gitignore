@@ -252,3 +252,5 @@ events*
 *.swp
 checkpoint
 weights*
+model/__pycache__/
+*.pyc

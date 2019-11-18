@@ -4,12 +4,14 @@ import pathlib
 import utils
 import numpy as np
 
-from model.base_model import BaseNet
+# from model.base_model import BaseNet
+from model.base_model_fine_tune import BaseNetTuned
 from dataset import ChestXrayDataset
 
 from sklearn.metrics import confusion_matrix
 
 import logging
+
 logger = tf.get_logger()
 logger.setLevel(logging.ERROR)
 
@@ -28,23 +30,27 @@ class Trainer:
             self.params = utils.Params(experiment_dir / 'params.json')
 
         # model
-        self.model = BaseNet(params=self.params).get_model()
+        # self.net = BaseNet(params=self.params)
+        self.net = BaseNetTuned(params=self.params)
+        self.model = self.net.get_model()
 
         # directories
         self.experiment_dir = experiment_dir
         self.weight_file = self.experiment_dir / 'weights_val_loss'
         self.history_file = self.experiment_dir / 'history.pickle'
+        self.history_fine_file = self.experiment_dir / 'history_fine.pickle'
 
         # dataset
         if self.params.small_model:
             self.dataset = ChestXrayDataset(params=self.params,
-                                            data_dir=pathlib.Path.home()/'data/chest_xray/small_10')
+                                            data_dir=pathlib.Path.home() / 'data/chest_xray/small_10')
         else:
             self.dataset = ChestXrayDataset(params=self.params)
         self.train_ds, self.val_ds, self.test_ds = self.dataset.build_datasets()
 
         # optimizer
         self.optimizer = tf.keras.optimizers.Adam(lr=self.params.learning_rate)
+        self.optimizer_fine = tf.keras.optimizers.Adam(lr=self.params.fine_learning_rate)
 
         # metrics and loss
         self.metrics = [tf.keras.metrics.CategoricalAccuracy(),
@@ -54,9 +60,6 @@ class Trainer:
                                                      average=None)
                         ]
         self.loss = self.params.loss
-        self.model.compile(optimizer=self.optimizer,
-                           loss=self.loss,
-                           metrics=self.metrics)
 
         # callbacks
         self.callbacks = [
@@ -77,23 +80,52 @@ class Trainer:
                                              verbose=1)
         ]
 
+        # history
+        self.history = None
+        self.history_fine = None
+
     def train(self, load_weights=False):
+
+        self.model.compile(optimizer=self.optimizer,
+                           loss=self.loss,
+                           metrics=self.metrics)
+
         if load_weights:
             self.model.load_weights(self.weight_file)
 
-        history = self.model.fit(x=self.train_ds,
-                                 steps_per_epoch=self.params.num_train_files//self.params.batch_size,
-                                 epochs=self.params.epochs,
-                                 validation_data=self.val_ds,
-                                 validation_steps=self.params.num_val_files//self.params.batch_size,
-                                 callbacks=self.callbacks)
-        utils.save_history_dict(history, self)
-        return history
+        self.history = self.model.fit(
+            x=self.train_ds,
+            steps_per_epoch=self.params.num_train_files // self.params.batch_size,
+            epochs=self.params.epochs,
+            validation_data=self.val_ds,
+            validation_steps=self.params.num_val_files // self.params.batch_size,
+            callbacks=self.callbacks
+        )
+        utils.save_history_dict(self.history, self)
+        return self.history
+
+    def train_fine(self, load_weights=False):
+
+        self.model.compile(optimizer=self.optimizer_fine,
+                           loss=self.loss,
+                           metrics=self.metrics)
+        if load_weights:
+            self.model.load_weights(self.weight_file)
+
+        self.history_fine = self.model.fit(
+            x=self.train_ds,
+            steps_per_epoch=self.params.num_train_files // self.params.batch_size,
+            epochs=self.params.epochs+self.params.fine_tune_epochs,
+            initial_epoch=self.history.epoch[-1],
+            validation_data=self.val_ds,
+            validation_steps=self.params.num_val_files // self.params.batch_size,
+            callbacks=self.callbacks
+        )
 
     def predict(self):
         self.model.load_weights(str(self.weight_file))
         y_pred_categorical = self.model.predict(self.test_ds,
-                                                steps=self.params.num_test_files//self.params.batch_size)
+                                                steps=self.params.num_test_files // self.params.batch_size)
         y_pred = np.argmax(y_pred_categorical, axis=1)
         return y_pred
 
@@ -121,9 +153,14 @@ class Trainer:
     def plot_history(self):
         utils.plot_history(self)
 
+    def unfreeze(self, fine_tune_at=100):
+        self.net.unfreeze(fine_tune_at=fine_tune_at)
+        self.model.compile(optimizer=self.optimizer,
+                           loss=self.loss,
+                           metrics=self.metrics)
+
 
 if __name__ == '__main__':
     trainer = Trainer(experiment_dir=pathlib.Path('experiments/small_model'))
     trainer.train()
     preds = trainer.predict()
-
