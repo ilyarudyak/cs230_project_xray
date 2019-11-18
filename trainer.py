@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
 import pathlib
 import utils
 
@@ -28,13 +29,13 @@ class Trainer:
 
         # directories
         self.experiment_dir = experiment_dir
-        self.weight_file = self.experiment_dir / 'weights_val_loss.hdf5'
+        self.weight_file = self.experiment_dir / 'weights_val_loss'
         self.history_file = self.experiment_dir / 'history.pickle'
 
         # dataset
         if self.params.small_model:
             self.dataset = ChestXrayDataset(params=self.params,
-                                            data_dir=pathlib.Path.home()/'data/chest_xray/small_10')
+                                            data_dir=pathlib.Path.home()/'data/chest_xray')
         else:
             self.dataset = ChestXrayDataset(params=self.params)
         self.train_ds, self.val_ds = self.dataset.build_datasets()
@@ -45,7 +46,11 @@ class Trainer:
         # metrics and loss
         self.metrics = [tf.keras.metrics.Accuracy(),
                         tf.keras.metrics.Precision(),
-                        tf.keras.metrics.Recall()]
+                        tf.keras.metrics.Recall(),
+                        tfa.metrics.f_scores.F1Score(num_classes=2,
+                                                     average=None),
+                        tfa.metrics.multilabel_confusion_matrix.MultiLabelConfusionMatrix(num_classes=2)
+                        ]
         self.loss = self.params.loss
         self.model.compile(optimizer=self.optimizer,
                            loss=self.loss,
@@ -65,7 +70,7 @@ class Trainer:
                                                  verbose=1),
             tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                              min_delta=1e-3,
-                                             patience=10,
+                                             patience=5,
                                              mode='min',
                                              verbose=1)
         ]
