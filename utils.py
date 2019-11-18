@@ -73,8 +73,8 @@ def plot_history(trainer):
 
     history_dict = load_history_dict(trainer=trainer)
 
-    acc = history_dict['accuracy']
-    val_acc = history_dict['val_accuracy']
+    acc = history_dict['categorical_accuracy']
+    val_acc = history_dict['val_categorical_accuracy']
 
     loss = history_dict['loss']
     val_loss = history_dict['val_loss']

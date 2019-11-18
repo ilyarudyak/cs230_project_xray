@@ -108,6 +108,8 @@ class ChestXrayDataset:
 
     def build_datasets(self):
 
+        print('start loading datasets ...')
+
         self.build_train_labeled_ds()
         self.build_val_labeled_ds()
         self.build_test_labeled_ds()
@@ -115,5 +117,7 @@ class ChestXrayDataset:
         self.train_ds = self.prepare_for_training(self.train_labeled_ds)
         self.val_ds = self.prepare_for_training(self.val_labeled_ds)
         self.test_ds = self.prepare_for_training(self.test_labeled_ds)
+
+        print('done loading datasets')
 
         return self.train_ds, self.val_ds, self.test_ds
