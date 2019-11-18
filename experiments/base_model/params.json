@@ -1,7 +1,7 @@
 {
   "learning_rate": 0.001,
-  "epochs": 3,
-  "batch_size": 8,
+  "epochs": 30,
+  "batch_size": 32,
 
   "input_shape": [224, 224, 3],
   "loss": "categorical_crossentropy",
