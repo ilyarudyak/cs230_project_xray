@@ -35,7 +35,7 @@ class Trainer:
         # dataset
         if self.params.small_model:
             self.dataset = ChestXrayDataset(params=self.params,
-                                            data_dir=pathlib.Path.home()/'data/chest_xray')
+                                            data_dir=pathlib.Path.home()/'data/chest_xray/small_10')
         else:
             self.dataset = ChestXrayDataset(params=self.params)
         self.train_ds, self.val_ds = self.dataset.build_datasets()
@@ -48,8 +48,7 @@ class Trainer:
                         tf.keras.metrics.Precision(),
                         tf.keras.metrics.Recall(),
                         tfa.metrics.f_scores.F1Score(num_classes=2,
-                                                     average=None),
-                        tfa.metrics.multilabel_confusion_matrix.MultiLabelConfusionMatrix(num_classes=2)
+                                                     average=None)
                         ]
         self.loss = self.params.loss
         self.model.compile(optimizer=self.optimizer,
