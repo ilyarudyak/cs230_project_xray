@@ -27,13 +27,14 @@ class BaseNetTuned:
         self.build_model()
 
     def build_model(self):
-        self.base_model = tf.keras.applications.ResNet50(input_shape=params.input_shape,
+        self.base_model = tf.keras.applications.ResNet50(input_shape=self.params.input_shape,
                                                          include_top=False,
                                                          weights='imagenet')
-        self.base_model.is_trainable = False
+        self.base_model.trainable = False
 
         self.model = tf.keras.Sequential([
             self.base_model,
+            tf.keras.layers.GlobalAveragePooling2D(),
             tf.keras.layers.Dense(self.num_classes,
                                   activation=self.output_layer_activation)
         ])

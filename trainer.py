@@ -19,7 +19,7 @@ logger.setLevel(logging.ERROR)
 class Trainer:
 
     def __init__(self,
-                 experiment_dir=pathlib.Path('experiments/base_model'),
+                 experiment_dir=pathlib.Path('experiments/fine_model'),
                  params=None,
                  ):
 
@@ -27,7 +27,7 @@ class Trainer:
         if params:
             self.params = params
         else:
-            self.params = utils.Params(experiment_dir / 'params.json')
+            self.params = utils.Params(str(experiment_dir / 'params.json'))
 
         # model
         # self.net = BaseNet(params=self.params)
@@ -53,11 +53,8 @@ class Trainer:
         self.optimizer_fine = tf.keras.optimizers.Adam(lr=self.params.fine_learning_rate)
 
         # metrics and loss
-        self.metrics = [tf.keras.metrics.CategoricalAccuracy(),
-                        tf.keras.metrics.Precision(),
-                        tf.keras.metrics.Recall(),
-                        tfa.metrics.f_scores.F1Score(num_classes=2,
-                                                     average=None)
+        self.metrics = [
+            tf.keras.metrics.CategoricalAccuracy()
                         ]
         self.loss = self.params.loss
 
@@ -116,11 +113,13 @@ class Trainer:
             x=self.train_ds,
             steps_per_epoch=self.params.num_train_files // self.params.batch_size,
             epochs=self.params.epochs+self.params.fine_tune_epochs,
-            initial_epoch=self.history.epoch[-1],
+            initial_epoch=self.history.epoch[-1]+1,
             validation_data=self.val_ds,
             validation_steps=self.params.num_val_files // self.params.batch_size,
             callbacks=self.callbacks
         )
+        utils.save_history_dict(self.history_fine, self, fine=True)
+        return self.history_fine
 
     def predict(self):
         self.model.load_weights(str(self.weight_file))
@@ -150,14 +149,11 @@ class Trainer:
         cm = confusion_matrix(y_true, y_pred)
         return cm
 
-    def plot_history(self):
-        utils.plot_history(self)
+    def plot_history(self, fine=False):
+        utils.plot_history(self, fine=fine)
 
     def unfreeze(self, fine_tune_at=100):
         self.net.unfreeze(fine_tune_at=fine_tune_at)
-        self.model.compile(optimizer=self.optimizer,
-                           loss=self.loss,
-                           metrics=self.metrics)
 
 
 if __name__ == '__main__':

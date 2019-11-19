@@ -51,25 +51,34 @@ def show_batch(image_batch, label_batch, dataset):
         plt.axis('off')
 
 
-def save_history_dict(history, trainer, param_name=None):
+def save_history_dict(history, trainer, fine=False, param_name=None):
 
     if param_name:
         param = trainer.params.dict[param_name]
         filename = trainer.experiment_dir / f'history_{param_name}_{param}.pickle'
     else:
-        filename = trainer.experiment_dir / 'history.pickle'
+        if fine:
+            filename = trainer.history_fine_file
+        else:
+            filename = trainer.history_file
+
     with open(filename, 'wb') as f:
         pickle.dump(history.history, f)
 
 
-def load_history_dict(trainer):
-    filename = trainer.history_file
+def load_history_dict(trainer, fine=False):
+
+    if fine:
+        filename = trainer.history_fine_file
+    else:
+        filename = trainer.history_file
+
     with open(filename, "rb") as f:
         history = pickle.load(f)
     return history
 
 
-def plot_history(trainer):
+def plot_history(trainer, fine=False):
 
     history_dict = load_history_dict(trainer=trainer)
 
@@ -78,6 +87,15 @@ def plot_history(trainer):
 
     loss = history_dict['loss']
     val_loss = history_dict['val_loss']
+
+    if fine:
+        history_fine_dict = load_history_dict(trainer=trainer)
+
+        acc += history_fine_dict['categorical_accuracy']
+        val_acc += history_fine_dict['val_categorical_accuracy']
+
+        loss += history_fine_dict['loss']
+        val_loss += history_fine_dict['val_loss']
 
     epochs = range(len(acc))
 
@@ -89,6 +107,10 @@ def plot_history(trainer):
     plt.ylim([min(plt.ylim()), 1])
     plt.title('Training and Validation Accuracy')
     plt.xticks(epochs)
+    if fine:
+        initial_epochs = len(history_dict['loss']) - 1
+        plt.plot([initial_epochs, initial_epochs],
+             plt.ylim(), label='Start Fine Tuning')
 
     plt.subplot(1, 2, 2)
     plt.plot(loss, label='Training Loss')
@@ -97,3 +119,7 @@ def plot_history(trainer):
     plt.ylim([0, 1.0])
     plt.title('Training and Validation Loss')
     plt.xticks(epochs)
+    if fine:
+        initial_epochs = len(history_dict['loss']) - 1
+        plt.plot([initial_epochs, initial_epochs],
+             plt.ylim(), label='Start Fine Tuning')
