@@ -67,12 +67,12 @@ class Trainer:
                                                verbose=1),
             tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss',
                                                  factor=0.75,
-                                                 patience=3,
+                                                 patience=5,
                                                  min_lr=1e-5,
                                                  verbose=1),
             tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                              min_delta=1e-3,
-                                             patience=5,
+                                             patience=15,
                                              mode='min',
                                              verbose=1)
         ]
