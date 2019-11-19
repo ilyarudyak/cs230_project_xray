@@ -88,6 +88,8 @@ def plot_history(trainer, fine=False):
     loss = history_dict['loss']
     val_loss = history_dict['val_loss']
 
+    initial_epochs = len(acc) - 1
+
     if fine:
         history_fine_dict = load_history_dict(trainer=trainer)
 
@@ -108,7 +110,6 @@ def plot_history(trainer, fine=False):
     plt.title('Training and Validation Accuracy')
     plt.xticks(epochs)
     if fine:
-        initial_epochs = len(history_dict['loss']) - 1
         plt.plot([initial_epochs, initial_epochs],
              plt.ylim(), label='Start Fine Tuning')
 
@@ -120,6 +121,5 @@ def plot_history(trainer, fine=False):
     plt.title('Training and Validation Loss')
     plt.xticks(epochs)
     if fine:
-        initial_epochs = len(history_dict['loss']) - 1
         plt.plot([initial_epochs, initial_epochs],
              plt.ylim(), label='Start Fine Tuning')
