@@ -11,7 +11,7 @@ class CatDogTrainer:
                  model_type='resnet50'):
 
         self.SPLIT_WEIGHTS = (8, 1, 1)
-        self.IMG_SIZE = 160
+        self.IMG_SIZE = 224
         self.BATCH_SIZE = 32
         self.SHUFFLE_BUFFER_SIZE = 1000
         self.IMG_SHAPE = (self.IMG_SIZE, self.IMG_SIZE, 3)
@@ -25,8 +25,8 @@ class CatDogTrainer:
 
         self.base_learning_rate = 0.0001
         self.optimizer = tf.keras.optimizers.RMSprop(lr=self.base_learning_rate)
-        self.loss = 'binary_crossentropy'
-        self.metrics = ['accuracy']
+        self.loss = tf.keras.losses.BinaryCrossentropy()  # 'binary_crossentropy'
+        self.metrics = [tf.keras.metrics.BinaryAccuracy()]  #['accuracy']
         self.initial_epochs = initial_epochs
 
         self.base_model = None
@@ -47,7 +47,7 @@ class CatDogTrainer:
 
         def format_example(image, label):
             image = tf.cast(image, tf.float32)
-            image = (image / 127.5) - 1
+            image /= 255.0  # (image / 127.5) - 1
             image = tf.image.resize(image, (self.IMG_SIZE, self.IMG_SIZE))
             return image, label
 
@@ -72,7 +72,7 @@ class CatDogTrainer:
 
         self.base_model.trainable = False
         self.global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
-        self.prediction_layer = tf.keras.layers.Dense(1)
+        self.prediction_layer = tf.keras.layers.Dense(2)
 
         self.model = tf.keras.Sequential([
             self.base_model,
@@ -90,8 +90,8 @@ class CatDogTrainer:
                                       validation_data=self.validation_batches)
 
     def plot_history(self):
-        acc = self.history.history['accuracy']
-        val_acc = self.history.history['val_accuracy']
+        acc = self.history.history['binary_accuracy']
+        val_acc = self.history.history['val_binary_accuracy']
 
         loss = self.history.history['loss']
         val_loss = self.history.history['val_loss']
